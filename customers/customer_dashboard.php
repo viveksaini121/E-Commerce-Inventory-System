@@ -1,6 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION["customer"])) {
+// Require canonical session key set at login
+if (!isset($_SESSION['user_id'])) {
   header("Location: ../auth/login_customer.php");
   exit();
 }
@@ -51,7 +52,11 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
         <a href="view_cart.php" class="btn btn-light btn-sm me-2">
           🛒 Cart (<?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?>)
         </a>
-        <span class="text-white me-3">Welcome, <?= $_SESSION["customer"] ?></span>
+        <span class="text-white me-3">Welcome, <?= htmlspecialchars(
+          
+          // prefer username session key
+          $_SESSION['username'] ?? ''
+        ) ?></span>
         <a href="../auth/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
       </div>
     </div>

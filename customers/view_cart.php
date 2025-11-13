@@ -1,6 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION["customer"])) {
+// Use unified session key
+if (!isset($_SESSION['user_id'])) {
   header("Location: ../auth/login_customer.php");
   exit();
 }

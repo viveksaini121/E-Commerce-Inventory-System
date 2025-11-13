@@ -6,7 +6,10 @@ CREATE TABLE users (
   id INT PRIMARY KEY AUTO_INCREMENT,
   username VARCHAR(100) UNIQUE,
   password VARCHAR(255),
-  role ENUM('admin','customer') DEFAULT 'admin'
+  email VARCHAR(255) UNIQUE,
+  phone VARCHAR(20),
+  address TEXT,
+  role ENUM('admin','customer') DEFAULT 'customer'
 );
 
 -- Product table
@@ -19,20 +22,14 @@ CREATE TABLE products (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Customers
-CREATE TABLE customers (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(100),
-  email VARCHAR(100) UNIQUE,
-  phone VARCHAR(15)
-);
+-- Note: legacy `customers` table removed. The app uses a single `users` table (role='customer') instead.
 
 -- Orders
 CREATE TABLE orders (
   id INT PRIMARY KEY AUTO_INCREMENT,
-  customer_id INT,
+  user_id INT,
   order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (customer_id) REFERENCES customers(id)
+  FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 -- Order Items

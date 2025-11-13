@@ -17,18 +17,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Check for both hashed and plain-text passwords
     if (password_verify($password, $user["password"]) || $password === $user["password"]) {
-      // Set both user and role in session
-      $_SESSION["user"] = $user["username"];
-      $_SESSION["role"] = $user["role"];
-      
+      // Use canonical session keys used across the app
+      $_SESSION['user_id'] = $user['id'];
+      $_SESSION['username'] = $user['username'];
+      $_SESSION['role'] = $user['role'];
+
       // Redirect based on user role
-      if ($user["role"] === "admin") {
+      if ($user['role'] === 'admin') {
         header("Location: ../admin_dashboard.php");
       } else {
-        header("Location: ../customer_dashboard.php");
+        header("Location: ../customers/customer_dashboard.php");
       }
       exit(); // Important: Always exit after redirect
-      
+
     } else {
       $error = "Invalid password!";
     }

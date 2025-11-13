@@ -1,6 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION["user"]) || $_SESSION["role"] !== "admin") {
+// Require canonical session keys
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
   header("Location: ./auth/login.php");
   exit();
 }
@@ -18,7 +19,9 @@ if (!isset($_SESSION["user"]) || $_SESSION["role"] !== "admin") {
     <div class="container-fluid">
       <a class="navbar-brand fw-bold" href="#">Admin Dashboard</a>
       <div class="d-flex">
-        <span class="text-white me-3">Welcome, <?= htmlspecialchars($_SESSION["user"]) ?></span>
+        <span class="text-white me-3">Welcome, <?= htmlspecialchars(
+          $_SESSION['username'] ?? ''
+        ) ?></span>
         <a href="auth/logout.php" class="btn btn-outline-light btn-sm">Logout</a>
       </div>
     </div>

@@ -2,7 +2,8 @@
 session_start();
 include("../config/db.php");
 
-if (!isset($_SESSION["customer"])) {
+// Require canonical session key
+if (!isset($_SESSION['user_id'])) {
   header("Location: ../auth/login_customer.php");
   exit();
 }
@@ -13,14 +14,8 @@ if (empty($cart)) {
   exit();
 }
 
-// Get logged-in customer's details from `users` table
-$customer_username = $_SESSION["customer"];
-$query = $conn->prepare("SELECT id FROM users WHERE username = ?");
-$query->bind_param("s", $customer_username);
-$query->execute();
-$customer_result = $query->get_result();
-$customer = $customer_result->fetch_assoc();
-$customer_id = $customer['id'];
+// Use logged-in user's id from session
+$customer_id = (int) $_SESSION['user_id'];
 // --- Transactional order placement ---
 // We wrap the following operations in a single DB transaction to ensure ACID:
 // 1) Insert into `orders`
@@ -31,8 +26,8 @@ try {
   // Start transaction (autocommit=false)
   $conn->begin_transaction();
 
-  // Insert order (records order header)
-  $stmt = $conn->prepare("INSERT INTO orders (customer_id, order_date) VALUES (?, NOW())");
+  // Insert order (records order header) - orders now references users via user_id
+  $stmt = $conn->prepare("INSERT INTO orders (user_id, order_date) VALUES (?, NOW())");
   $stmt->bind_param("i", $customer_id);
   $stmt->execute();
   $order_id = $conn->insert_id;

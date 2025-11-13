@@ -32,14 +32,49 @@ include("../config/db.php");
 
 */
 
-$query = "
-SELECT orders.id, customers.name AS customer, products.name AS product, order_items.quantity, orders.order_date
-FROM orders
-JOIN customers ON orders.customer_id = customers.id
-JOIN order_items ON orders.id = order_items.order_id
-JOIN products ON order_items.product_id = products.id
-ORDER BY orders.order_date DESC;
-";
+// Determine which foreign key column exists on `orders` (user_id vs customer_id)
+$fk = null;
+$check = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'user_id'");
+if ($check && $check->num_rows > 0) {
+  $fk = 'user_id';
+} else {
+  $check2 = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'customer_id'");
+  if ($check2 && $check2->num_rows > 0) {
+    $fk = 'customer_id';
+  }
+}
+
+if (!$fk) {
+  // If neither column exists, show helpful error (schema mismatch)
+  die("<p style='color:red'>Database schema error: 'orders' table has neither 'user_id' nor 'customer_id'.</p>");
+}
+
+// Determine which date/timestamp column exists on `orders` (prefer created_at, fall back to order_date)
+$dateCol = null;
+$c1 = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'created_at'");
+if ($c1 && $c1->num_rows > 0) {
+  $dateCol = 'created_at';
+} else {
+  $c2 = $conn->query("SHOW COLUMNS FROM `orders` LIKE 'order_date'");
+  if ($c2 && $c2->num_rows > 0) {
+    $dateCol = 'order_date';
+  }
+}
+
+if (!$dateCol) {
+  die("<p style='color:red'>Database schema error: 'orders' table has no timestamp column (expected 'created_at' or 'order_date').</p>");
+}
+
+// Build query using the detected FK column and date column
+$query = "SELECT o.id AS order_id, u.username AS username, u.email AS email, "
+       . "o." . $dateCol . " AS order_date, SUM(oi.quantity * p.price) AS total_amount "
+       . "FROM orders o "
+       . "JOIN users u ON o.`" . $fk . "` = u.id "
+       . "JOIN order_items oi ON o.id = oi.order_id "
+       . "JOIN products p ON oi.product_id = p.id "
+       . "GROUP BY o.id, u.username, u.email, o." . $dateCol . " "
+       . "ORDER BY o." . $dateCol . " DESC";
+
 $result = $conn->query($query);
 ?>
 <!DOCTYPE html>
@@ -50,15 +85,15 @@ $result = $conn->query($query);
 <body class="p-4">
 <h2>Order Details</h2>
 <table class="table table-bordered table-striped">
-<thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Quantity</th><th>Date</th></tr></thead>
+<thead><tr><th>Order ID</th><th>Username</th><th>Email</th><th>Date</th><th>Total (₹)</th></tr></thead>
 <tbody>
 <?php while($row = $result->fetch_assoc()) { ?>
 <tr>
-  <td><?= $row['id'] ?></td>
-  <td><?= $row['customer'] ?></td>
-  <td><?= $row['product'] ?></td>
-  <td><?= $row['quantity'] ?></td>
+  <td>#<?= $row['order_id'] ?></td>
+  <td><?= htmlspecialchars($row['username']) ?></td>
+  <td><?= htmlspecialchars($row['email']) ?></td>
   <td><?= $row['order_date'] ?></td>
+  <td>₹<?= number_format($row['total_amount'], 2) ?></td>
 </tr>
 <?php } ?>
 </tbody>
