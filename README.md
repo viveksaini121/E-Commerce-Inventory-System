@@ -1,5 +1,5 @@
 # E-commerce-Inventory-System
-<p>I made this project as part of my University Project Curriculum. This project is fully focused on Database Management Part and hence you will not find any fancy UI/UX in the Frontend.</p>
+<p>I made this project as part of my University Project Curriculum. This project is fully focused on Database Management and hence you will not find any fancy UI/UX in the Frontend.</p>
 <hr>
 <h2>*****FrontEnd*****</h2>
 
@@ -57,7 +57,7 @@
 
 <h4>See below for Project Report</h4>
 
-[text](<Ecommerce-Management Report.pdf>)
+[Report](<Ecommerce-Management Report.pdf>)
 <br>
 
 <hr>
