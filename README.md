@@ -7,21 +7,21 @@
 
 <h3>LoginPage</h3>
 
-<img src = "./image.png" alt = "LoginPage">
+![alt text](image.png)
 <br>
 
 <h3>AdminDashboard</h3>
 
-<img src = "./image-1.png" alt = "admindashboard">
+![alt text](image-1.png)
 <br>
 
 <h3>ProductList</h3>
 
-<img src = "./image-2.png" alt = "productlist">
+![alt text](image-2.png)
 <br>
 
 <h3>CustomerDashboard</h3>
 
-<img src = "./image-3.png" alt = "customerdashboard">
+![alt text](image-3.png)
 <br>
 
