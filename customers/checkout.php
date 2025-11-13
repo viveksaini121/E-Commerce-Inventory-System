@@ -8,14 +8,23 @@ if (!isset($_SESSION['user_id'])) {
   exit();
 }
 
-$cart = $_SESSION['cart'] ?? [];
+// Use logged-in user's id from session
+$customer_id = (int) $_SESSION['user_id'];
+
+// Fetch cart items from DB for this user
+$cartStmt = $conn->prepare("SELECT c.product_id, c.quantity, p.price FROM cart_items c JOIN products p ON c.product_id = p.id WHERE c.user_id = ?");
+$cartStmt->bind_param("i", $customer_id);
+$cartStmt->execute();
+$cartRes = $cartStmt->get_result();
+$cart = [];
+while ($r = $cartRes->fetch_assoc()) {
+  $cart[$r['product_id']] = ['quantity' => (int)$r['quantity'], 'price' => (float)$r['price']];
+}
+
 if (empty($cart)) {
   echo "<script>alert('Your cart is empty!'); window.location='view_cart.php';</script>";
   exit();
 }
-
-// Use logged-in user's id from session
-$customer_id = (int) $_SESSION['user_id'];
 // --- Transactional order placement ---
 // We wrap the following operations in a single DB transaction to ensure ACID:
 // 1) Insert into `orders`
@@ -67,8 +76,10 @@ try {
   // All queries succeeded — commit transaction (durability)
   $conn->commit();
 
-  // Clear cart only after a successful commit
-  unset($_SESSION['cart']);
+  // Clear cart items in DB for this user only after successful commit
+  $del = $conn->prepare("DELETE FROM cart_items WHERE user_id = ?");
+  $del->bind_param("i", $customer_id);
+  $del->execute();
 
 } catch (Exception $e) {
   // Any exception triggers a rollback ensuring atomicity. Use @ to suppress any warning if

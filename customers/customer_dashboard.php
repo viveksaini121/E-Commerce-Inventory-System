@@ -8,30 +8,19 @@ if (!isset($_SESSION['user_id'])) {
 
 include("../config/db.php");
 
-// Initialize cart if not set
-if (!isset($_SESSION['cart'])) {
-  $_SESSION['cart'] = [];
-}
+// Add to cart is handled via customers/add_to_cart.php which persists cart in DB
 
-// Add to cart
-if (isset($_POST['add_to_cart'])) {
-  $product_id = $_POST['product_id'];
-  $product_name = $_POST['product_name'];
-  $product_price = $_POST['product_price'];
-  $product_quantity = 1;
-
-  // If already in cart, increase quantity
-  if (isset($_SESSION['cart'][$product_id])) {
-    $_SESSION['cart'][$product_id]['quantity'] += 1;
-  } else {
-    $_SESSION['cart'][$product_id] = [
-      'name' => $product_name,
-      'price' => $product_price,
-      'quantity' => $product_quantity
-    ];
+// Get cart count for this user
+$cart_count = 0;
+if (isset($_SESSION['user_id'])) {
+  $uid = (int) $_SESSION['user_id'];
+  $cstmt = $conn->prepare("SELECT SUM(quantity) AS cnt FROM cart_items WHERE user_id = ?");
+  $cstmt->bind_param("i", $uid);
+  $cstmt->execute();
+  $cres = $cstmt->get_result();
+  if ($cres && $crow = $cres->fetch_assoc()) {
+    $cart_count = (int)$crow['cnt'];
   }
-
-  echo "<script>alert('Product added to cart!');</script>";
 }
 
 $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
@@ -50,7 +39,7 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
       <a class="navbar-brand fw-bold" href="#">E-Commerce</a>
       <div class="d-flex">
         <a href="view_cart.php" class="btn btn-light btn-sm me-2">
-          🛒 Cart (<?= isset($_SESSION['cart']) ? count($_SESSION['cart']) : 0 ?>)
+          🛒 Cart (<?= $cart_count ?>)
         </a>
         <span class="text-white me-3">Welcome, <?= htmlspecialchars(
           
@@ -72,11 +61,9 @@ $result = $conn->query("SELECT * FROM products ORDER BY created_at DESC");
             <h5 class="card-title"><?= htmlspecialchars($row['name']) ?></h5>
             <p class="card-text text-muted small"><?= htmlspecialchars($row['description']) ?></p>
             <p class="fw-bold">₹<?= number_format($row['price'], 2) ?></p>
-            <form method="POST">
+            <form method="POST" action="add_to_cart.php">
               <input type="hidden" name="product_id" value="<?= $row['id'] ?>">
-              <input type="hidden" name="product_name" value="<?= htmlspecialchars($row['name']) ?>">
-              <input type="hidden" name="product_price" value="<?= $row['price'] ?>">
-              <button type="submit" name="add_to_cart" class="btn btn-success w-100">
+              <button type="submit" class="btn btn-success w-100">
                 Add to Cart
               </button>
             </form>
