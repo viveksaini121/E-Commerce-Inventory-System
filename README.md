@@ -10,6 +10,11 @@
 ![alt text](image.png)
 <br>
 
+<h3>CustomerRegister</h3>
+
+![alt text](image-4.png)
+<br>
+
 <h3>AdminDashboard</h3>
 
 ![alt text](image-1.png)
