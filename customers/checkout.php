@@ -36,7 +36,7 @@ try {
   $conn->begin_transaction();
 
   // Insert order (records order header) - orders now references users via user_id
-  $stmt = $conn->prepare("INSERT INTO orders (user_id, order_date) VALUES (?, NOW())");
+  $stmt = $conn->prepare("INSERT INTO orders (customer_id, order_date) VALUES (?, NOW())");
   $stmt->bind_param("i", $customer_id);
   $stmt->execute();
   $order_id = $conn->insert_id;
